@@ -70,12 +70,10 @@
               (if (minusp offset)
                   (- (recv-expected recv-buf) offset)
                   offset))
-             (end
-              (+ start size))
+             (bytes
+              (make-array size :element-type 'octet :displaced-to recv-buf :displaced-index-offset (+ (recv-read recv-buf) start)))
              (stream
-              (flex:make-in-memory-input-stream (recv-buffer recv-buf)
-                                                :start (+ (recv-read recv-buf) start)
-                                                :end (+ (recv-read recv-buf) end)))
+              (babel-streams:make-in-memory-input-stream bytes))
              (length
               (unpack stream type)))
         (recv-fixed cont cnn length)))))

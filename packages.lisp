@@ -9,6 +9,9 @@
            #:connection
            #:connection-buffer
            #:connection-socket
+           #:eat
+           #:eat-stream
+           #:eat-to-expected
            #:recv
            #:recv-buf
            #:recv-delimited
