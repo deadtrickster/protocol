@@ -4,7 +4,7 @@
   (:use #:alexandria
         #:cl-cont
         #:common-lisp
-        #:pack)
+        #:yapack)
   (:export #:*event-base*
            #:connection
            #:connection-buffer

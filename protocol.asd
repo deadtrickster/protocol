@@ -5,7 +5,7 @@
                #:babel-streams
                #:cl-cont
                #:iolib
-               #:pack)
+               #:yapack)
   :serial t
   :components
   ((:file "packages")
