@@ -29,26 +29,26 @@
 (defun recv-available (recv-buf)
   (the fixnum (- (recv-write recv-buf) (recv-read recv-buf))))
 
-(defun eat (recv-buf &optional length)
+(defun eat (recv-buf &optional length sharedp)
   (with-slots (buffer read write)
       recv-buf
-    (let ((length (or length (- write read))))
-      (let ((start read)
-            (end (+ read length)))
-        (prog1
-            (make-array length :element-type 'octet :displaced-to buffer :displaced-index-offset start)
-          (setf read end))))))
+    (let* ((length (or length (- write read)))
+           (result (if sharedp
+                       (make-array length :element-type 'octet :displaced-to buffer :displaced-index-offset read)
+                       (replace (make-array length :element-type 'octet) buffer :start2 read))))
+      (incf read length)
+      result)))
 
-(defun eat-stream (recv-buf &optional length)
-  (babel-streams:make-in-memory-input-stream (eat recv-buf length)))
+(defun eat-stream (recv-buf &optional length sharedp)
+  (babel-streams:make-in-memory-input-stream (eat recv-buf length sharedp)))
 
-(defun eat-to-expected (recv-buf)
+(defun eat-to-expected (recv-buf &optional sharedp)
   (prog1
-      (eat recv-buf (recv-expected recv-buf))
+      (eat recv-buf (recv-expected recv-buf) sharedp)
     (setf (recv-expected recv-buf) 0)))
 
-(defun stream-to-expected (recv-buf)
-  (babel-streams:make-in-memory-input-stream (eat-to-expected recv-buf)))
+(defun stream-to-expected (recv-buf &optional sharedp)
+  (babel-streams:make-in-memory-input-stream (eat-to-expected recv-buf sharedp)))
 
 (defun eat-to-delimiter (recv-buf delimiter)
   (declare (octets delimiter))

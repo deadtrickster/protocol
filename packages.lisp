@@ -11,15 +11,18 @@
            #:connection-socket
            #:eat
            #:eat-stream
+           #:eat-to-delimiter
            #:eat-to-expected
            #:recv
            #:recv-buf
            #:recv-delimited
            #:recv-fixed
+           #:recv-recipe
            #:recv-stream
+           #:recv-unpack
            #:recv-variable
            #:send
            #:send-bytes
-           #:stream-to-delimited
+           #:stream-to-delimiter
            #:stream-to-expected
            #:with-recv))

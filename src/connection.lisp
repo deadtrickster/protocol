@@ -79,7 +79,7 @@
               (babel-streams:make-in-memory-input-stream bytes))
              (length
               (unpack stream type)))
-        (recv-fixed cont cnn length)))))
+        (cl-cont::funcall/cc 'recv-fixed cont cnn length)))))
 
 (defun plan (recipe)
   (let ((size 0)
@@ -90,11 +90,11 @@
          (incf size (size-of step)))
         ((listp step)
          (incf size (size-of (second step)))
-         (push (list 'read-fixed size) plan)
-         (push (list 'read-variable (first step)) plan)
+         (push (list 'recv-fixed size) plan)
+         (push (list 'recv-variable (first step)) plan)
          (setf size 0))))
     (unless (zerop size)
-      (push (list 'read-fixed size) plan))
+      (push (list 'recv-fixed size) plan))
     (nreverse plan)))
 
 (defun recipe (vars)
@@ -111,13 +111,10 @@
 
 ;; returns stream
 (defun/cc recv-plan (cnn plan)
-  (let/cc cont
-    (labels ((self (recv-buf)
-               (if (null plan)
-                   (funcall cont (stream-to-expected recv-buf))
-                   (let ((step (pop plan)))
-                     (apply (first step) #'self cnn (rest step))))))
-      (self (connection-buffer cnn)))))
+  (loop
+     for (fn . args) in plan
+     do (apply fn cnn args)
+     finally (return (stream-to-expected (connection-buffer cnn)))))
 
 ;; returns stream
 (defun/cc recv-recipe (cnn recipe)
@@ -147,9 +144,12 @@
 
 ;; returns stream
 (defun/cc recv (cnn &rest args)
-  (recv-recipe cnn (connection-buffer cnn) args))
+  (recv-recipe cnn args))
+
+(defun/cc recv-unpack (cnn &rest args)
+  (apply #'unpack (recv-recipe cnn args) args))
 
 (defmacro with-recv ((cnn) (&rest vars) &body body)
-  `(with-unpack ((recv ,cnn ,(recipe vars)))
+  `(with-unpack ((recv ,cnn ,@(recipe vars)))
        (,@vars)
      ,@body))
