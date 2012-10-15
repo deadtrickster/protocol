@@ -1,9 +1,10 @@
 (in-package #:protocol)
 
-(defvar *event-base* nil)
+(defvar *event-base* (make-instance 'iomux:event-base))
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (setf *event-base* (make-instance 'iomux:event-base)))
+(pushnew (lambda ()
+           (setf *event-base* (make-instance 'iomux:event-base)))
+         sb-ext:*init-hooks*)
 
 (defclass connection ()
   ((socket
